@@ -26,7 +26,7 @@ var uploadTypeHandlers map[string]uploadTypeHandler
 
 func base64Handler() uploadTypeHandler {
 	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
-		ct := r.Header.Get("Content-Type")
+		ct := r.PostForm.Get("content-type")
 		if !contentTypeOK(ct) {
 			return nil, fmt.Errorf("unknown content type: %s", ct)
 		}
