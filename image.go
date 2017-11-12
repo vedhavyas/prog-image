@@ -31,9 +31,8 @@ func base64Handler() uploadTypeHandler {
 			return nil, fmt.Errorf("unknown content type: %s", ct)
 		}
 
-		eimg := []byte(r.PostForm.Get("image"))
-		var dimg []byte
-		_, err = base64.StdEncoding.Decode(dimg, eimg)
+		eimg := r.PostForm.Get("image")
+		dimg, err := base64.StdEncoding.DecodeString(eimg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode base64 image: %v", err)
 		}

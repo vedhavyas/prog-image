@@ -11,6 +11,10 @@ import (
 
 const defaultPath = "./images"
 
+func init() {
+	os.MkdirAll(defaultPath, 755)
+}
+
 func newID() uint64 {
 	key := fmt.Sprintf("prog-%d-%v", time.Now().Unix(), rand.Uint64())
 	h := fnv.New64()
@@ -32,20 +36,19 @@ func getPath(id string) string {
 	return fmt.Sprintf("%s/%s", defaultPath, id)
 }
 
-func saveImage(img *Image) error {
-	path := getPath(img.ID)
+func saveImage(path string, img *Image) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("failed to create file %s: %v", path, err)
 	}
 
+	defer f.Sync()
 	defer f.Close()
 	enc := gob.NewEncoder(f)
 	return enc.Encode(img)
 }
 
-func getImage(id string) (*Image, error) {
-	path := getPath(id)
+func getImage(path string) (*Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %v", path, err)

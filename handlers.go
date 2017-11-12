@@ -27,7 +27,7 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = saveImage(img)
+	err = saveImage(getPath(img.ID), img)
 	if err != nil {
 		writeResponse(w, http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
