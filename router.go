@@ -18,7 +18,7 @@ func getRouter() http.Handler {
 
 // StartImageServer will start the image server
 func StartImageServer(addr string) {
-	err := http.ListenAndServe(addr, getRouter())
+	err := http.ListenAndServe(addr, recoverHandler(logHandler(getRouter())))
 	if err != nil {
 		log.Fatalf("failed to start server: %v\n", err)
 	}
