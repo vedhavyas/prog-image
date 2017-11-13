@@ -1,14 +1,18 @@
 package progimg
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -73,7 +77,6 @@ func Test_uploadImage_base64(t *testing.T) {
 	s := setup()
 	form := url.Values{}
 	form.Add("type", "base64")
-	form.Add("content-type", "png")
 	form.Add("image", getTestImgBase64())
 	req, _ := http.NewRequest("POST", s.URL+"/images", strings.NewReader(form.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -84,26 +87,6 @@ func Test_uploadImage_base64(t *testing.T) {
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("unexpected error: %v", resp)
-	}
-
-	cleanup(s)
-}
-
-func Test_uploadImage_base64_error(t *testing.T) {
-	s := setup()
-	form := url.Values{}
-	form.Add("type", "base64")
-	form.Add("image", getTestImgBase64())
-	req, _ := http.NewRequest("POST", s.URL+"/images", strings.NewReader(form.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("unexpected error: %v", resp)
 	}
 
@@ -148,6 +131,42 @@ func Test_uploadImageURL(t *testing.T) {
 
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("unexpected error: %v", resp)
+	}
+
+	cleanup(s)
+}
+
+func Test_uploadImageFile(t *testing.T) {
+	s := setup()
+	path := "./testdata/testimg.png"
+	file, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer file.Close()
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("image", filepath.Base(path))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	_, err = io.Copy(part, file)
+	writer.WriteField("type", "file")
+	err = writer.Close()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", s.URL+"/images", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("unexpected status code: %v", resp)
 	}
 
 	cleanup(s)

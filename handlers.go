@@ -11,11 +11,12 @@ import (
 // handleUpload handles the image upload requests
 func handleUpload(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	r.ParseForm()
-	imgType := r.PostFormValue("type")
+	// todo
+	r.ParseMultipartForm(32 << 20)
+	imgType := r.FormValue("type")
 	h, ok := uploadTypeHandlers[imgType]
 	if !ok {
-		writeResponse(w, http.StatusBadRequest, map[string]string{
+		writeJSONResponse(w, http.StatusBadRequest, map[string]string{
 			"error": fmt.Sprintf("unknown format: %s", imgType),
 		})
 		return
@@ -23,7 +24,7 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 
 	img, err := h(r)
 	if err != nil {
-		writeResponse(w, http.StatusBadRequest, map[string]string{
+		writeJSONResponse(w, http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 		return
@@ -31,12 +32,12 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 
 	err = saveImage(getPath(img.ID), img)
 	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, map[string]string{
+		writeJSONResponse(w, http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	writeResponse(w, http.StatusCreated, map[string]string{
+	writeJSONResponse(w, http.StatusCreated, map[string]string{
 		"id": img.ID,
 	})
 }
@@ -46,14 +47,14 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id == "" {
-		writeResponse(w, http.StatusBadRequest, map[string]string{
+		writeJSONResponse(w, http.StatusBadRequest, map[string]string{
 			"error": "id is required",
 		})
 		return
 	}
 	img, err := getImage(getPath(id))
 	if err != nil {
-		writeResponse(w, http.StatusNotFound, map[string]string{
+		writeJSONResponse(w, http.StatusNotFound, map[string]string{
 			"error": err.Error(),
 		})
 		return
@@ -66,12 +67,13 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 
 func handle404(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	writeResponse(w, http.StatusNotFound, map[string]string{
+	writeJSONResponse(w, http.StatusNotFound, map[string]string{
 		"error": "404 not found",
 	})
 }
 
-func writeResponse(w http.ResponseWriter, c int, d interface{}) {
+func writeJSONResponse(w http.ResponseWriter, c int, d interface{}) {
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(c)
 	p, err := json.Marshal(d)
 	if err != nil {
