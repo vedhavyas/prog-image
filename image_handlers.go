@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -75,7 +74,6 @@ func multipartImageHandler() uploadTypeHandler {
 	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
 		i, _, err := r.FormFile("image")
 		if err != nil {
-			log.Println("read error")
 			return nil, fmt.Errorf("failed to fetch multipart image: %v", err)
 		}
 
@@ -83,7 +81,6 @@ func multipartImageHandler() uploadTypeHandler {
 
 		d, err := ioutil.ReadAll(i)
 		if err != nil {
-			log.Println("read error")
 			return nil, fmt.Errorf("failed to read image file: %v", err)
 		}
 
