@@ -54,7 +54,7 @@ func Test_saveImage_getImage(t *testing.T) {
 	}
 
 	path := "./images"
-	os.Mkdir(path, 0777)
+	os.Mkdir(path, 0766)
 	for _, i := range tests {
 		p := fmt.Sprintf("%s/%s", path, i.ID)
 		err := saveImage(p, i)

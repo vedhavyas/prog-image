@@ -73,7 +73,6 @@ func urlImageHandler() uploadTypeHandler {
 
 func multipartImageHandler() uploadTypeHandler {
 	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
-		r.ParseMultipartForm(32 << 20)
 		i, _, err := r.FormFile("image")
 		if err != nil {
 			log.Println("read error")
@@ -90,7 +89,6 @@ func multipartImageHandler() uploadTypeHandler {
 
 		ct := http.DetectContentType(d)
 		if !contentTypeOK(ct) {
-			log.Println("content type:", ct)
 			return nil, fmt.Errorf("unknow content type: %s", ct)
 		}
 

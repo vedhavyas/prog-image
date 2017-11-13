@@ -12,7 +12,7 @@ import (
 const defaultPath = "./images"
 
 func init() {
-	os.MkdirAll(defaultPath, 0777)
+	os.MkdirAll(defaultPath, 0766)
 }
 
 func newID() uint64 {

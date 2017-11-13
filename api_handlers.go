@@ -11,7 +11,6 @@ import (
 // handleUpload handles the image upload requests
 func handleUpload(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	// todo
 	r.ParseMultipartForm(32 << 20)
 	imgType := r.FormValue("type")
 	h, ok := uploadTypeHandlers[imgType]
