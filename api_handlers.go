@@ -59,6 +59,18 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.ParseForm()
+	ct := r.Form.Get("type")
+	if ct != "" && ct != img.Type {
+		err := transformImage(ct, img)
+		if err != nil {
+			writeJSONResponse(w, http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			})
+			return
+		}
+	}
+
 	w.Header().Add("Content-type", fmt.Sprintf("image/%s", img.Type))
 	w.WriteHeader(http.StatusOK)
 	w.Write(img.Data)

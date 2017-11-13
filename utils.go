@@ -1,9 +1,13 @@
 package progimg
 
 import (
+	"bytes"
 	"encoding/gob"
 	"fmt"
 	"hash/fnv"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"math/rand"
 	"os"
 	"time"
@@ -59,4 +63,45 @@ func getImage(path string) (*Image, error) {
 	var img Image
 	err = dec.Decode(&img)
 	return &img, err
+}
+
+func getGoImage(img *Image) (image.Image, error) {
+	buf := bytes.NewReader(img.Data)
+	switch img.Type {
+	case "png":
+		return png.Decode(buf)
+	case "jpeg":
+		return jpeg.Decode(buf)
+	}
+
+	return nil, fmt.Errorf("unknown image format: %s", img.Type)
+}
+
+func transformImage(rct string, img *Image) error {
+	if rct == img.Type {
+		return nil
+	}
+
+	gimg, err := getGoImage(img)
+	if err != nil {
+		return fmt.Errorf("failed to decode image: %v", err)
+	}
+
+	var buf bytes.Buffer
+	switch rct {
+	case "png":
+		err = png.Encode(&buf, gimg)
+	case "jpeg":
+		err = jpeg.Encode(&buf, gimg, nil)
+	default:
+		err = fmt.Errorf("unknown conversion format: %s", rct)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to convert image: %v", err)
+	}
+
+	img.Type = rct
+	img.Data = buf.Bytes()
+	return nil
 }

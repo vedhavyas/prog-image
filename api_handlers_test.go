@@ -78,30 +78,6 @@ func Test_uploadImage_base64(t *testing.T) {
 	cleanup(s)
 }
 
-func Test_downloadImage(t *testing.T) {
-	s := setup()
-	id := postTestImage(t, s)
-	resp, err := http.Get(s.URL + "/images/" + id)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("unexpected error: status code: %d", resp.StatusCode)
-	}
-
-	rd, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("unexpected error: response body: %v", err)
-	}
-
-	if getTestBase64("./testdata/testimg.png") != base64.StdEncoding.EncodeToString(rd) {
-		t.Fatalf("unexpected error: wrong image: %v", rd)
-	}
-
-	cleanup(s)
-}
-
 func Test_uploadImageURL(t *testing.T) {
 	s := setup()
 	id := postTestImage(t, s)
@@ -236,4 +212,75 @@ func Test_uploadImageFile_error(t *testing.T) {
 	}
 
 	cleanup(s)
+}
+
+func Test_downloadImage(t *testing.T) {
+	s := setup()
+	id := postTestImage(t, s)
+	resp, err := http.Get(s.URL + "/images/" + id)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("unexpected error: status code: %d", resp.StatusCode)
+	}
+
+	ct := resp.Header.Get("Content-Type")
+	if ct != "image/png" {
+		t.Fatalf("unexpected error: content-type: %s", ct)
+	}
+
+	rd, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("unexpected error: response body: %v", err)
+	}
+
+	if getTestBase64("./testdata/testimg.png") != base64.StdEncoding.EncodeToString(rd) {
+		t.Fatalf("unexpected error: wrong image: %v", rd)
+	}
+
+	cleanup(s)
+}
+
+func Test_downloadImage_convert_PNG_JPEG(t *testing.T) {
+	s := setup()
+	id := postTestImage(t, s)
+	resp, err := http.Get(s.URL + "/images/" + id + "?type=jpeg")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("unexpected error: status code: %d", resp.StatusCode)
+	}
+
+	ct := resp.Header.Get("Content-Type")
+	if ct != "image/jpeg" {
+		t.Fatalf("unexpected error: content-type: %s", ct)
+	}
+
+	rd, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("unexpected error: response body: %v", err)
+	}
+
+	if getTestBase64("./testdata/testimg.jpeg") != base64.StdEncoding.EncodeToString(rd) {
+		t.Fatalf("unexpected error: wrong image: %v", rd)
+	}
+
+	cleanup(s)
+}
+
+func Test_downloadImage_covert_unknown(t *testing.T) {
+	s := setup()
+	id := postTestImage(t, s)
+	resp, err := http.Get(s.URL + "/images/" + id + "?type=pdf")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("unexpected error: status code: %d", resp.StatusCode)
+	}
 }
