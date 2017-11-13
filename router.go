@@ -11,6 +11,7 @@ func getRouter() http.Handler {
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(handle404)
 	r.HandleFunc("/images/{id}", handleDownload).Methods("GET")
+	r.HandleFunc("/images/", handleUpload).Methods("POST")
 	r.HandleFunc("/images", handleUpload).Methods("POST")
 	return r
 }

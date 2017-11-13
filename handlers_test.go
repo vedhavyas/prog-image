@@ -36,6 +36,39 @@ func getTestImgBase64() string {
 	return base64.StdEncoding.EncodeToString(d)
 }
 
+func postTestImage(t *testing.T, s *httptest.Server) (id string) {
+	form := url.Values{}
+	form.Add("type", "base64")
+	form.Add("content-type", "png")
+	form.Add("image", getTestImgBase64())
+	req, _ := http.NewRequest("POST", s.URL+"/images", strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("unexpected error: %v", resp)
+	}
+
+	d, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var res struct {
+		ID string
+	}
+
+	err = json.Unmarshal(d, &res)
+	if err != nil {
+		t.Fatalf("unexpected err: %v", err)
+	}
+
+	return res.ID
+}
+
 func Test_uploadImage_base64(t *testing.T) {
 	s := setup()
 	form := url.Values{}
@@ -79,36 +112,8 @@ func Test_uploadImage_base64_error(t *testing.T) {
 
 func Test_downloadImage(t *testing.T) {
 	s := setup()
-	form := url.Values{}
-	form.Add("type", "base64")
-	form.Add("content-type", "png")
-	form.Add("image", getTestImgBase64())
-	req, _ := http.NewRequest("POST", s.URL+"/images", strings.NewReader(form.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("unexpected error: %v", resp)
-	}
-
-	d, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	var res struct {
-		ID string
-	}
-
-	err = json.Unmarshal(d, &res)
-	if err != nil {
-		t.Fatalf("unexpected err: %v", err)
-	}
-
-	resp, err = http.Get(s.URL + "/images/" + res.ID)
+	id := postTestImage(t, s)
+	resp, err := http.Get(s.URL + "/images/" + id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,6 +129,25 @@ func Test_downloadImage(t *testing.T) {
 
 	if getTestImgBase64() != base64.StdEncoding.EncodeToString(rd) {
 		t.Fatalf("unexpected error: wrong image: %v", rd)
+	}
+
+	cleanup(s)
+}
+
+func Test_uploadImageURL(t *testing.T) {
+	s := setup()
+	id := postTestImage(t, s)
+	u := s.URL + "/images/" + id
+	form := url.Values{}
+	form.Add("type", "url")
+	form.Add("image", u)
+	resp, err := http.PostForm(s.URL+"/images/", form)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("unexpected error: %v", resp)
 	}
 
 	cleanup(s)

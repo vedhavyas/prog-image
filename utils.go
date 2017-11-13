@@ -23,7 +23,7 @@ func newID() uint64 {
 }
 
 func contentTypeOK(ct string) bool {
-	for _, t := range []string{"png", "jpeg"} {
+	for _, t := range []string{"png", "jpeg", "image/png", "image/jpeg"} {
 		if ct == t {
 			return true
 		}

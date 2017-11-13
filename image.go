@@ -3,7 +3,9 @@ package progimg
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type Image struct {
@@ -41,7 +43,31 @@ func base64Handler() uploadTypeHandler {
 	})
 }
 
+func urlImageHandler() uploadTypeHandler {
+	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
+		iu := r.PostForm.Get("image")
+		resp, err := http.Get(iu)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch %s: %v", iu, err)
+		}
+
+		ct := resp.Header.Get("Content-type")
+		if !contentTypeOK(ct) {
+			return nil, fmt.Errorf("unknown content type found %s: fetch %s", ct, iu)
+		}
+
+		defer resp.Body.Close()
+		d, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fecth %s: %v", iu, err)
+		}
+
+		return newImage(strings.TrimPrefix(ct, "image/"), d), nil
+	})
+}
+
 func init() {
 	uploadTypeHandlers = make(map[string]uploadTypeHandler)
 	uploadTypeHandlers["base64"] = base64Handler()
+	uploadTypeHandlers["url"] = urlImageHandler()
 }
