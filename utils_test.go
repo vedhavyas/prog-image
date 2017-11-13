@@ -13,19 +13,19 @@ func Test_contentTypeOK(t *testing.T) {
 		r  bool
 	}{
 		{
-			ct: "image/png",
+			ct: "png",
 			r:  true,
 		},
 		{
-			ct: "image/gif",
+			ct: "gif",
 			r:  false,
 		},
 		{
-			ct: "image/pdf",
+			ct: "pdf",
 			r:  false,
 		},
 		{
-			ct: "image/jpeg",
+			ct: "jpeg",
 			r:  true,
 		},
 	}
@@ -54,7 +54,7 @@ func Test_saveImage_getImage(t *testing.T) {
 	}
 
 	path := "./images-test"
-	os.Mkdir(path, 755)
+	os.Mkdir(path, 0777)
 	for _, i := range tests {
 		p := fmt.Sprintf("%s/%s", path, i.ID)
 		err := saveImage(p, i)

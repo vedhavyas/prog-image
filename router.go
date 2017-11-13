@@ -7,12 +7,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// StartImageServer will start the image server
-func StartImageServer(addr string) {
+func getRouter() http.Handler {
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(handle404)
+	r.HandleFunc("/images/{id}", handleDownload).Methods("GET")
 	r.HandleFunc("/images", handleUpload).Methods("POST")
-	err := http.ListenAndServe(addr, r)
+	return r
+}
+
+// StartImageServer will start the image server
+func StartImageServer(addr string) {
+	err := http.ListenAndServe(addr, getRouter())
 	if err != nil {
 		log.Fatalf("failed to start server: %v\n", err)
 	}

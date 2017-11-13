@@ -12,7 +12,7 @@ import (
 const defaultPath = "./images"
 
 func init() {
-	os.MkdirAll(defaultPath, 755)
+	os.MkdirAll(defaultPath, 0777)
 }
 
 func newID() uint64 {
@@ -23,7 +23,7 @@ func newID() uint64 {
 }
 
 func contentTypeOK(ct string) bool {
-	for _, t := range []string{"image/png", "image/jpeg"} {
+	for _, t := range []string{"png", "jpeg"} {
 		if ct == t {
 			return true
 		}
