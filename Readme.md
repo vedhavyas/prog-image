@@ -7,7 +7,7 @@ go get github.com/vedhavyas/prog-image/cmd/...
 
 ## Start
 ```
-./prog-image --addr ":8080"
+./prog-imaged --addr ":8080"
 ```
 
 ## API
