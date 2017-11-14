@@ -1,9 +1,12 @@
 package progimg
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -69,6 +72,66 @@ func Test_saveImage_getImage(t *testing.T) {
 
 		if !reflect.DeepEqual(i, img) {
 			t.Fatal("unexpected error: image mismatch")
+		}
+	}
+}
+
+func Test_transformImage(t *testing.T) {
+	tests := []struct {
+		ct   string
+		data string
+		rct  string
+		tfp  string
+		err  string
+	}{
+		{
+			ct:   "png",
+			data: getTestBase64("./testdata/testimg.png"),
+			tfp:  "./testdata/testimg.jpeg",
+			rct:  "jpeg",
+		},
+
+		{
+			ct:   "png",
+			data: getTestBase64("./testdata/testimg.png"),
+			tfp:  "./testdata/testimg.png",
+			rct:  "png",
+		},
+
+		{
+			ct:   "jpeg",
+			data: getTestBase64("./testdata/testimg.jpeg"),
+			tfp:  "./testdata/testjpegtopng.png",
+			rct:  "png",
+		},
+
+		{
+			ct:   "png",
+			data: getTestBase64("./testdata/testimg.png"),
+			rct:  "pdf",
+			err:  "unknown conversion format: pdf",
+		},
+	}
+
+	for _, c := range tests {
+		data, _ := base64.StdEncoding.DecodeString(c.data)
+		img := newImage(c.ct, data)
+		err := transformImage(c.rct, img)
+		if err != nil {
+			if strings.Contains(err.Error(), c.err) {
+				continue
+			}
+
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if img.Format != c.rct {
+			t.Fatalf("format mismatch: %s != %s", c.rct, img.Format)
+		}
+
+		edata, _ := base64.StdEncoding.DecodeString(getTestBase64(c.tfp))
+		if !bytes.Equal(edata, img.Data) {
+			t.Fatalf("image data mismatch: %v != %v", edata, img.Data)
 		}
 	}
 }

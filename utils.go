@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"image"
+	"image/color"
+	"image/draw"
 	"image/jpeg"
 	"image/png"
 	"math/rand"
@@ -15,6 +17,9 @@ import (
 
 // defaultPath to store the images
 const defaultPath = "./images"
+
+// whiteBackground while converting from png to jpeg
+var whiteBackground = color.RGBA{0xff, 0xff, 0xff, 0xff}
 
 // supportedCTs holds all the supported content types
 var supportedCTs = []string{"png", "jpeg", "image/png", "image/jpeg"}
@@ -103,7 +108,11 @@ func transformImage(rct string, img *Image) error {
 	case "png":
 		err = png.Encode(&buf, gimg)
 	case "jpeg":
-		err = jpeg.Encode(&buf, gimg, nil)
+		dst := image.NewRGBA(gimg.Bounds())
+		draw.Draw(dst, dst.Bounds(), image.NewUniform(whiteBackground),
+			image.Point{}, draw.Src)
+		draw.Draw(dst, dst.Bounds(), gimg, gimg.Bounds().Min, draw.Over)
+		err = jpeg.Encode(&buf, dst, nil)
 	default:
 		err = fmt.Errorf("unknown conversion format: %s", rct)
 	}
