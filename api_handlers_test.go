@@ -246,7 +246,7 @@ func Test_downloadImage(t *testing.T) {
 func Test_downloadImage_convert_PNG_JPEG(t *testing.T) {
 	s := setup()
 	id := postTestImage(t, s)
-	resp, err := http.Get(s.URL + "/images/" + id + "?type=jpeg")
+	resp, err := http.Get(s.URL + "/images/" + id + "?format=jpeg")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -275,7 +275,7 @@ func Test_downloadImage_convert_PNG_JPEG(t *testing.T) {
 func Test_downloadImage_covert_unknown(t *testing.T) {
 	s := setup()
 	id := postTestImage(t, s)
-	resp, err := http.Get(s.URL + "/images/" + id + "?type=pdf")
+	resp, err := http.Get(s.URL + "/images/" + id + "?format=pdf")
 	if err != nil {
 		log.Fatal(err)
 	}

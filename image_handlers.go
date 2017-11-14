@@ -8,24 +8,29 @@ import (
 	"strings"
 )
 
+// Image represents an image we store on our end
 type Image struct {
-	ID   string
-	Type string
-	Data []byte
+	ID     string // id: unique ID for image
+	Format string // Format: image format
+	Data   []byte // Data: image data
 }
 
+// newImage returns a new image from given format and image data
 func newImage(ct string, data []byte) *Image {
 	return &Image{
-		ID:   fmt.Sprint(newID()),
-		Type: strings.TrimPrefix(ct, "image/"),
-		Data: data,
+		ID:     fmt.Sprint(newID()),
+		Format: strings.TrimPrefix(ct, "image/"),
+		Data:   data,
 	}
 }
 
+// uploadTypeHandler aliases function that handles image extraction from request
 type uploadTypeHandler func(r *http.Request) (*Image, error)
 
+// uploadTypeHandlers acts a mux for different uploadTypeHandler
 var uploadTypeHandlers map[string]uploadTypeHandler
 
+// base64Handler extracts the base64 encoded image from the request
 func base64Handler() uploadTypeHandler {
 	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
 		eimg := r.PostForm.Get("image")
@@ -43,6 +48,7 @@ func base64Handler() uploadTypeHandler {
 	})
 }
 
+// urlImageHandler fetches the url from request, downloads the image and returns the image
 func urlImageHandler() uploadTypeHandler {
 	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
 		iu := r.PostForm.Get("image")
@@ -70,6 +76,7 @@ func urlImageHandler() uploadTypeHandler {
 	})
 }
 
+// multipartImageHandler extracts the multipart image upload from request
 func multipartImageHandler() uploadTypeHandler {
 	return uploadTypeHandler(func(r *http.Request) (img *Image, err error) {
 		i, _, err := r.FormFile("image")

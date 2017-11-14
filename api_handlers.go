@@ -9,6 +9,10 @@ import (
 )
 
 // handleUpload handles the image upload requests
+// It supports 3 types of uploads
+// 1. base64 image upload
+// 2. image url
+// 3. multipart upload
 func handleUpload(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	r.ParseMultipartForm(32 << 20)
@@ -41,6 +45,8 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// handleDownload posts the matching image back
+// It also support format conversion received through "format" query
 func handleDownload(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	vars := mux.Vars(r)
@@ -60,8 +66,8 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	ct := r.Form.Get("type")
-	if ct != "" && ct != img.Type {
+	ct := r.Form.Get("format")
+	if ct != "" && ct != img.Format {
 		err := transformImage(ct, img)
 		if err != nil {
 			writeJSONResponse(w, http.StatusBadRequest, map[string]string{
@@ -71,11 +77,12 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Add("Content-type", fmt.Sprintf("image/%s", img.Type))
+	w.Header().Add("Content-type", fmt.Sprintf("image/%s", img.Format))
 	w.WriteHeader(http.StatusOK)
 	w.Write(img.Data)
 }
 
+// handle404 handles url requests not registered with router
 func handle404(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	writeJSONResponse(w, http.StatusNotFound, map[string]string{
@@ -83,6 +90,7 @@ func handle404(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// writeJSONResponse will json marshall the given data and write it to response writer
 func writeJSONResponse(w http.ResponseWriter, c int, d interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(c)

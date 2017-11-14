@@ -13,12 +13,17 @@ import (
 	"time"
 )
 
+// defaultPath to store the images
 const defaultPath = "./images"
+
+// supportedCTs holds all the supported content types
+var supportedCTs = []string{"png", "jpeg", "image/png", "image/jpeg"}
 
 func init() {
 	os.MkdirAll(defaultPath, 0766)
 }
 
+// newID returns a new unique id
 func newID() uint64 {
 	key := fmt.Sprintf("prog-%d-%v", time.Now().Unix(), rand.Uint64())
 	h := fnv.New64()
@@ -26,8 +31,9 @@ func newID() uint64 {
 	return h.Sum64()
 }
 
+// contentTypeOK checks if the given content-type present in the supported list
 func contentTypeOK(ct string) bool {
-	for _, t := range []string{"png", "jpeg", "image/png", "image/jpeg"} {
+	for _, t := range supportedCTs {
 		if ct == t {
 			return true
 		}
@@ -36,10 +42,12 @@ func contentTypeOK(ct string) bool {
 	return false
 }
 
+// getPath constructs the image path
 func getPath(id string) string {
 	return fmt.Sprintf("%s/%s", defaultPath, id)
 }
 
+// saveImage will save the image at given path using gob encoding
 func saveImage(path string, img *Image) error {
 	f, err := os.Create(path)
 	if err != nil {
@@ -52,6 +60,7 @@ func saveImage(path string, img *Image) error {
 	return enc.Encode(img)
 }
 
+// getImage will extract the image from the file using gob decoder
 func getImage(path string) (*Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -65,20 +74,22 @@ func getImage(path string) (*Image, error) {
 	return &img, err
 }
 
+// getGoImage returns image.Image from our Image
 func getGoImage(img *Image) (image.Image, error) {
 	buf := bytes.NewReader(img.Data)
-	switch img.Type {
+	switch img.Format {
 	case "png":
 		return png.Decode(buf)
 	case "jpeg":
 		return jpeg.Decode(buf)
 	}
 
-	return nil, fmt.Errorf("unknown image format: %s", img.Type)
+	return nil, fmt.Errorf("unknown image format: %s", img.Format)
 }
 
+// transformImage will transform image to rct format
 func transformImage(rct string, img *Image) error {
-	if rct == img.Type {
+	if rct == img.Format {
 		return nil
 	}
 
@@ -101,7 +112,7 @@ func transformImage(rct string, img *Image) error {
 		return fmt.Errorf("failed to convert image: %v", err)
 	}
 
-	img.Type = rct
+	img.Format = rct
 	img.Data = buf.Bytes()
 	return nil
 }

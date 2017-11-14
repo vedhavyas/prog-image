@@ -35,8 +35,8 @@ func Test_newImage(t *testing.T) {
 
 	for _, c := range tests {
 		img := newImage(c.ct, nil)
-		if img.Type != c.ect {
-			t.Fatalf("expected %s content type but got %s", c.ect, img.Type)
+		if img.Format != c.ect {
+			t.Fatalf("expected %s content type but got %s", c.ect, img.Format)
 		}
 	}
 }
@@ -84,8 +84,8 @@ func Test_base64Handler(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if img.Type != c.ct {
-			t.Fatalf("expected %s type but got %s", c.ct, img.Type)
+		if img.Format != c.ct {
+			t.Fatalf("expected %s type but got %s", c.ct, img.Format)
 		}
 	}
 }
@@ -128,8 +128,8 @@ func Test_urlHandler(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if img.Type != c.ct {
-			t.Fatalf("expected %s type but got %s", c.ct, img.Type)
+		if img.Format != c.ct {
+			t.Fatalf("expected %s type but got %s", c.ct, img.Format)
 		}
 	}
 }
@@ -187,8 +187,8 @@ func Test_fileImageUpload(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if img.Type != c.ct {
-			t.Fatalf("expected %s type but got %s", c.ct, img.Type)
+		if img.Format != c.ct {
+			t.Fatalf("expected %s type but got %s", c.ct, img.Format)
 		}
 	}
 }

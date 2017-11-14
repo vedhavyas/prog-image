@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// getRouter returns a mux router with defined urls
 func getRouter() http.Handler {
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(handle404)

@@ -41,15 +41,15 @@ func Test_contentTypeOK(t *testing.T) {
 func Test_saveImage_getImage(t *testing.T) {
 	tests := []*Image{
 		{
-			ID:   "12345",
-			Type: "image/png",
-			Data: []byte{1, 200, 32, 23},
+			ID:     "12345",
+			Format: "image/png",
+			Data:   []byte{1, 200, 32, 23},
 		},
 
 		{
-			ID:   "dsbfdbhd",
-			Type: "image/jpeg",
-			Data: []byte{1, 23, 12, 123},
+			ID:     "dsbfdbhd",
+			Format: "image/jpeg",
+			Data:   []byte{1, 23, 12, 123},
 		},
 	}
 
